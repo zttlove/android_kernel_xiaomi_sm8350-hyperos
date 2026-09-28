@@ -1,0 +1,229 @@
+{
+  "admission": {
+    "kernel_config": {
+      "appended_dtb": "disabled-verified",
+      "basename": "kernel_xiaomi_prime_noksu_dot_config",
+      "sha256": "84dff66cc71ef0cfa788ad2435de3af4a34339c2348c4eeaadb3b64f5befd11f",
+      "size": 187544
+    },
+    "kernel_image": {
+      "declared_image_size": 60960768,
+      "flags": 10,
+      "format": "arm64-Image",
+      "header_magic": "ARM\\x64",
+      "text_offset": 524288,
+      "trailing_device_tree": "absent-verified"
+    }
+  },
+  "capabilities": {
+    "addon_failure_blocks_kernel_flash": false,
+    "addon_installation_policy": "best-effort-optional",
+    "artifact_type": "anykernel3-runtime-repack-zip",
+    "boot_partition": "boot",
+    "boot_write_verification": "bounded-full-partition-sha256-readback",
+    "bundles_addon": false,
+    "device_boot_contract": {
+      "android_source_baseline": "Android 15",
+      "audited_reference_layout": {
+        "boot_header_version": 3,
+        "device_tree_revision": "sm8350-qgki-reference",
+        "evidence": "LAHAINA SM8350 QGKI packs a standalone Image; DTB lives in vendor_boot, so no appended-DTB path exists.",
+        "scope": "Static reference evidence only; it does not identify or certify the ROM currently installed on the device.",
+        "virtual_ab": false
+      },
+      "contract_version": 1,
+      "delivery": "Image-only",
+      "device_tree_policy": {
+        "appended_dtb": "forbidden-and-config-verified-disabled",
+        "dtb_delivery": "forbidden",
+        "dtbo_delivery": "forbidden",
+        "installed_boot_components": "preserved",
+        "policy": "never-package-or-separately-flash-DTB-or-DTBO"
+      },
+      "installer_identity": {
+        "accepted_device_names": [
+          "star"
+        ],
+        "android_version_range_enforced": false,
+        "android_version_range_evidence": "No evidence-backed exact device identity is checked; AnyKernel installs without do.devicecheck to support re-branded/custom ROM device identifiers.",
+        "canonical_device": "star",
+        "devicecheck_required": false
+      },
+      "release_qualification": {
+        "blocking_external_evidence": [
+          "installed LAHAINA source-baseline compatibility",
+          "installed AOSP versus MIUI/HyperOS brand compatibility",
+          "stock boot v2/v3 component-preservation corpus",
+          "installed DTB/DTBO compatibility with this Image",
+          "target-device boot and peripheral qualification"
+        ],
+        "status": "canary-unqualified"
+      },
+      "runtime_layout_admission": {
+        "installed_rom_validation_required": true,
+        "installer_checks_boot_header": true,
+        "installer_checks_device_tree_compatibility": false,
+        "packager_checks_installed_rom": false,
+        "rejects_chromeos_wrappers": true,
+        "required_boot_magic": "ANDROID!",
+        "required_external_checks": [
+          "confirm the installed boot layout belongs to the target device and ROM",
+          "confirm the installed DTB/DTBO data is compatible with this kernel Image"
+        ],
+        "supported_boot_header_versions": [
+          3
+        ]
+      }
+    },
+    "includes_dtb": false,
+    "includes_dtbo": false,
+    "installer_operations": [
+      "split_boot",
+      "validate_android_boot_header_v2_or_v3",
+      "flash_boot"
+    ],
+    "kernel_boot_requires_addon": false,
+    "kernel_modules_delivery": "kernel-only-anykernel",
+    "modifies_vendor_boot": false,
+    "payload_model": "single-brand-root-Image",
+    "ramdisk_byte_preservation": {
+      "corpus_certified": false,
+      "mechanism": "magiskboot unpack -n keeps the original compressed component; flash_boot repacks without cpio extraction",
+      "required_release_check": "compare the ramdisk component across representative boot v2/v3 images"
+    },
+    "ramdisk_policy": "preserve-installed-compressed-component-without-cpio-reserialization",
+    "runtime_inputs": [
+      "the target device's existing active-slot boot image",
+      "a recovery or rooted booted environment able to read and write the boot partition",
+      "an unlocked/otherwise-authorized boot chain appropriate for custom kernels"
+    ],
+    "standalone_boot_image": false,
+    "standalone_boot_image_inputs_not_provided_by_this_rule": [
+      "a matching device and ROM stock boot.img with header v3 and its generic ramdisk",
+      "the matching vendor_boot image already installed or handled separately",
+      "the matching dtbo partition image already installed or handled separately",
+      "an explicit AVB signing or verification policy"
+    ]
+  },
+  "payload": {
+    "addon": null,
+    "dtb": null,
+    "dtbo": null,
+    "kernel": {
+      "mode": "0644",
+      "path": "Image",
+      "sha256": "49cf613507658f956eeb7ba5ab36d82a02b3b629608dbfaa4bdac0b18420de33",
+      "size": 43332096
+    },
+    "modules": null
+  },
+  "provenance": {
+    "bazel": "8.0.0+sha256:18417fdee645a8dc",
+    "configs": "sha256:b00acb4bfee46519",
+    "kernel": "02b1eba5360c187795a31e87f7d7a88fcdd337f9+p5a05ffd9b852",
+    "kernelsu": "disabled",
+    "kleaf": "23058b8ede5aa6e1a3bb075be80290ecf44cb17c+p58311fde8a62",
+    "packaging": "sha256:f2430f05da7bfab1",
+    "stubs": "sha256:37df89c134bd3b07",
+    "susfs": "disabled",
+    "toolchain": "sha256:cc3669388778368b"
+  },
+  "schema_version": 2,
+  "target": {
+    "artifact_kind": "kernel-only-anykernel",
+    "bazel_label": "@@//devices/lahaina/star:kernel_xiaomi_prime_noksu_anykernel_kernel_only",
+    "brand": "xiaomi",
+    "device": "star",
+    "kernel_producer_label": "@@//devices/lahaina/star:kernel_xiaomi_prime_noksu",
+    "platform": "lahaina",
+    "platform_device": "LAHAINA:STAR",
+    "profile": "prime",
+    "root_mode": "noksu",
+    "root_mode_label": "NoKSU",
+    "source_revision": "02b1eba5360c187795a31e87f7d7a88fcdd337f9+p5a05ffd9b852"
+  },
+  "template": {
+    "files": [
+      {
+        "mode": "0644",
+        "path": "LICENSE",
+        "sha256": "df6f65da47d459fdf2a2ef0eadb34f37d838befc91352b64a84f35507bea95cd",
+        "size": 11630
+      },
+      {
+        "mode": "0755",
+        "path": "META-INF/com/google/android/update-binary",
+        "sha256": "18bfaca89bdf67115447895e28b65a6127a8ddab6ff2561b214e70cef35f76f9",
+        "size": 19948
+      },
+      {
+        "mode": "0644",
+        "path": "META-INF/com/google/android/updater-script",
+        "sha256": "5ff37d09a77a9a1021295dae1ae38f8e7228e112b0c80c9632cb3763cf1b235d",
+        "size": 115
+      },
+      {
+        "mode": "0644",
+        "path": "README.md",
+        "sha256": "6044bd806c49aac06c0136636090b1455a4b3d130e46bc211179939ac52de0c4",
+        "size": 15755
+      },
+      {
+        "mode": "0755",
+        "path": "anykernel.sh",
+        "sha256": "eef8edc383970e5fe791fea5ec8865e3cb671bb70919ac15524f44fc51278593",
+        "size": 9040
+      },
+      {
+        "mode": "0755",
+        "path": "tools/ak3-core.sh",
+        "sha256": "7c2ff4571d56a2969295966b3c90a1b3bd2126df3557982e01881f6c4dae3932",
+        "size": 34024
+      },
+      {
+        "mode": "0755",
+        "path": "tools/busybox",
+        "sha256": "66436dc1e97d22886ed2d35bd69a9cb82bb0fdba4e4267c5184cee1d39a2f5f4",
+        "size": 1399484
+      },
+      {
+        "mode": "0755",
+        "path": "tools/fec",
+        "sha256": "93e567ffbdfb5be127bfaa87c803d1d3189cc0a88a3c50034927ca00fec663a8",
+        "size": 112836
+      },
+      {
+        "mode": "0755",
+        "path": "tools/httools_static",
+        "sha256": "14452e76ac06ea982a8ec597eeca96c91fe20fce12a784de547cd763d508b33f",
+        "size": 497540
+      },
+      {
+        "mode": "0755",
+        "path": "tools/lptools_static",
+        "sha256": "28f288a0312fecbab4422d3d425d9c973591f92400036a19d9536f7f22299d67",
+        "size": 430756
+      },
+      {
+        "mode": "0755",
+        "path": "tools/magiskboot",
+        "sha256": "58abd6b6d468f5d1f2eba7cebd3c00643e9a834fc2d0a5d87c0a8ae4621db2ab",
+        "size": 621588
+      },
+      {
+        "mode": "0755",
+        "path": "tools/magiskpolicy",
+        "sha256": "4b91fc952ac7f111e105bd0318229b623a9a0bfa5ffd3a38235df9243f78ec89",
+        "size": 222004
+      },
+      {
+        "mode": "0755",
+        "path": "tools/snapshotupdater_static",
+        "sha256": "80114a51ed79f4f96d0fc6d6e002496c7c11b7e4308293a0c618392cb0e6168c",
+        "size": 1718412
+      }
+    ],
+    "tree_digest_algorithm": "sha256-path-mode-content-size-v1",
+    "tree_sha256": "d862163fc1b016beedc5b395da5355a34220a4edc5a6ff7defef1c34f845da29"
+  }
+}

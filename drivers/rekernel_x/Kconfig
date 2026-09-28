@@ -1,0 +1,12 @@
+config REKERNEL_X
+	tristate "ReKernel-X support"
+	depends on ANDROID_BINDER_IPC
+	depends on NETFILTER && INET
+	depends on KPROBES
+	select NF_SOCKET_IPV4
+	select NF_SOCKET_IPV6 if IPV6
+	default n
+	help
+	  Enable the in-kernel ReKernel-X hooks used by NoActive.
+	  This provides Binder, signal and network events through the
+	  rekernel_x2 Generic Netlink family.
