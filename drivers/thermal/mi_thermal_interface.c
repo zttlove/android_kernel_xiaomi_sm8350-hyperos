@@ -16,6 +16,7 @@
 #include <net/netlink.h>
 #include <net/genetlink.h>
 #include <linux/power_supply.h>
+#include <linux/workqueue.h>
 
 #include "thermal_core.h"
 
@@ -24,6 +25,7 @@ struct mi_thermal_device  {
 	struct class *class;
 	struct attribute_group attrs;
 	struct notifier_block psy_nb;
+	struct work_struct usb_online_work;
 	int usb_online;
 };
 
@@ -47,7 +49,7 @@ static DEVICE_ATTR(screen_state, 0664,
 static ssize_t thermal_usb_online_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
-	return snprintf(buf, PAGE_SIZE, "%d\n", mi_thermal_dev.usb_online);
+	return snprintf(buf, PAGE_SIZE, "%d\n", READ_ONCE(mi_thermal_dev.usb_online));
 }
 
 static DEVICE_ATTR(usb_online, 0664,
@@ -105,29 +107,37 @@ static int screen_state_for_thermal_callback(struct notifier_block *nb,
 	return NOTIFY_OK;
 }
 
-static int usb_online_callback(struct notifier_block *nb,
-		unsigned long val, void *data)
+static void usb_online_update_work(struct work_struct *work)
 {
-	static struct power_supply *usb_psy;
-	struct power_supply *psy = data;
+	struct power_supply *usb_psy;
 	union power_supply_propval ret = {0,};
 	int err = 0;
 
-	if (strcmp(psy->desc->name, "usb"))
-		return NOTIFY_OK;
-
-	if (!usb_psy)
-		usb_psy = power_supply_get_by_name("usb");
+	usb_psy = power_supply_get_by_name("usb");
 	if (usb_psy) {
 		err = power_supply_get_property(usb_psy,
 				POWER_SUPPLY_PROP_ONLINE, &ret);
+		power_supply_put(usb_psy);
 		if (err) {
 			pr_err("usb online read error:%d\n",err);
-			return err;
+			return;
 		}
-		mi_thermal_dev.usb_online = ret.intval;
-		sysfs_notify(&mi_thermal_dev.dev->kobj, NULL, "usb_online");
+		WRITE_ONCE(mi_thermal_dev.usb_online, ret.intval);
+		if (mi_thermal_dev.dev)
+			sysfs_notify(&mi_thermal_dev.dev->kobj, NULL, "usb_online");
 	}
+}
+
+static int usb_online_callback(struct notifier_block *nb,
+		unsigned long val, void *data)
+{
+	struct power_supply *psy = data;
+
+	if (!psy || !psy->desc || strcmp(psy->desc->name, "usb"))
+		return NOTIFY_OK;
+
+	/* 原子通知持有 RCU 读锁，可能睡眠的充电器查询必须延后执行。 */
+	schedule_work(&mi_thermal_dev.usb_online_work);
 
 	return NOTIFY_OK;
 }
@@ -158,6 +168,7 @@ static void destroy_thermal_message_node(void)
 static int __init mi_thermal_interface_init(void)
 {
 	int ret = 0;
+	INIT_WORK(&mi_thermal_dev.usb_online_work, usb_online_update_work);
 	if (create_thermal_message_node()){
 		pr_warn("Thermal: create screen state failed\n");
 	}
@@ -171,12 +182,16 @@ static int __init mi_thermal_interface_init(void)
 		pr_err("usb online notifier registration error. defer. err:%d\n",
 			ret);
 		ret = -EPROBE_DEFER;
+	} else {
+		schedule_work(&mi_thermal_dev.usb_online_work);
 	}
 	return 0;
 }
 
 static void __exit mi_thermal_interface_exit(void)
 {
+	power_supply_unreg_notifier(&mi_thermal_dev.psy_nb);
+	cancel_work_sync(&mi_thermal_dev.usb_online_work);
 	mi_disp_unregister_client(&sm.thermal_notifier);
 	destroy_thermal_message_node();
 }

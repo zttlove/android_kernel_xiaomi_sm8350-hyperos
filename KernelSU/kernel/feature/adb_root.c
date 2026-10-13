@@ -10,7 +10,7 @@
 #include <linux/slab.h>
 #include <linux/version.h>
 
-// Needed by newer ReSukiSU builds on kernels with split task stack headers.
+// https://github.com/torvalds/linux/commit/68db0cf10678630d286f4bbbbdfa102951a35faa
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
 #include <linux/sched/task_stack.h>
 #endif
@@ -220,7 +220,7 @@ long ksu_adb_root_handle_execve_tracepoint(struct pt_regs *regs)
     // Tracepoint Syscall Redirect hook always in GKI2
     // So there no need to check for modern static key interface
     if (static_branch_unlikely(&ksu_adb_root)) {
-        return do_ksu_adb_root_handle_execve((const char __user *)PT_REGS_PARM1(regs), regs,
+        return do_ksu_adb_root_handle_execve((const char __user *)PT_REGS_SYSCALL_PARM1(regs), regs,
                                              (unsigned long *)&PT_REGS_PARM3(regs));
     }
     return 0;

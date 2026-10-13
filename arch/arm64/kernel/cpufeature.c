@@ -346,6 +346,8 @@ static const struct arm64_ftr_bits ftr_id_mmfr4[] = {
 };
 
 static const struct arm64_ftr_bits ftr_id_pfr0[] = {
+	/* CSV2 允许核心间存在差异，系统仍取共同安全值。 */
+	ARM64_FTR_BITS(FTR_HIDDEN, FTR_NONSTRICT, FTR_LOWER_SAFE, 16, 4, 0),		/* CSV2 */
 	ARM64_FTR_BITS(FTR_HIDDEN, FTR_STRICT, FTR_LOWER_SAFE, 12, 4, 0),		/* State3 */
 	ARM64_FTR_BITS(FTR_HIDDEN, FTR_STRICT, FTR_LOWER_SAFE, 8, 4, 0),		/* State2 */
 	ARM64_FTR_BITS(FTR_HIDDEN, FTR_STRICT, FTR_LOWER_SAFE, 4, 4, 0),		/* State1 */
@@ -693,6 +695,25 @@ static int check_update_ftr_reg(u32 sys_id, int cpu, u64 val, u64 boot)
 	return 1;
 }
 
+/* 仅调整指定字段的一致性检查，保留系统能力的安全合并。 */
+static void relax_cpu_ftr_reg(u32 sys_id, int field)
+{
+	const struct arm64_ftr_bits *ftrp;
+	struct arm64_ftr_reg *regp = get_arm64_ftr_reg(sys_id);
+
+	if (!regp)
+		return;
+
+	for (ftrp = regp->ftr_bits; ftrp->width; ftrp++) {
+		if (ftrp->shift == field) {
+			regp->strict_mask &= ~arm64_ftr_mask(ftrp);
+			break;
+		}
+	}
+
+	WARN_ON(!ftrp->width);
+}
+
 /*
  * Update system wide CPU feature registers with the values from a
  * non-boot CPU. Also performs SANITY checks to make sure that there
@@ -771,6 +792,18 @@ void update_cpu_features(int cpu,
 	 */
 	if (id_aa64pfr0_32bit_el0(read_sanitised_ftr_reg(SYS_ID_AA64PFR0_EL1)) &&
 		id_aa64pfr0_32bit_el0(info->reg_id_aa64pfr0)) {
+		u64 aa64pfr0 = read_sanitised_ftr_reg(SYS_ID_AA64PFR0_EL1);
+
+		/* EL1 仅支持 64 位时，以下 AArch32 系统字段无需严格相同。 */
+		if (cpuid_feature_extract_unsigned_field(aa64pfr0,
+				ID_AA64PFR0_EL1_SHIFT) == ID_AA64PFR0_EL1_64BIT_ONLY) {
+			relax_cpu_ftr_reg(SYS_ID_ISAR4_EL1, 12);	/* SMC */
+			relax_cpu_ftr_reg(SYS_ID_PFR1_EL1, 24);	/* Virt_frac */
+			relax_cpu_ftr_reg(SYS_ID_PFR1_EL1, 20);	/* Sec_frac */
+			relax_cpu_ftr_reg(SYS_ID_PFR1_EL1, 12);	/* Virtualization */
+			relax_cpu_ftr_reg(SYS_ID_PFR1_EL1, 4);	/* Security */
+			relax_cpu_ftr_reg(SYS_ID_PFR1_EL1, 0);	/* ProgMod */
+		}
 
 		taint |= check_update_ftr_reg(SYS_ID_DFR0_EL1, cpu,
 					info->reg_id_dfr0, boot->reg_id_dfr0);

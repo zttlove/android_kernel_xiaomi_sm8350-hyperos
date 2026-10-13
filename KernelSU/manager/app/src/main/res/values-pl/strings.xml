@@ -106,7 +106,6 @@
     <string name="flashing">Flashowanie</string>
     <string name="flash_success">Flashowanie ukończone pomyślnie</string>
     <string name="flash_failed">Flashowanie nieudane</string>
-    <string name="selected_lkm">Wybrano LKM: %s</string>
     <string name="save_log">Zapisz dzienniki</string>
     <string name="log_saved">Dzienniki zapisane</string>
     <string name="settings_sucompat">Przekieruj binarkę su</string>
@@ -303,12 +302,6 @@
     <string name="module_failed_count">%d nie udało się zainstalować nowego modułu</string>
     <string name="warning_of_meta_module_title">Wymagany meta moduł</string>
     <string name="warning_of_meta_module_summary">Ten moduł montuje /system i wymaga meta modułu, aby działać poprawnie</string>
-    <string name="sort_name_asc">Alfabetycznie (A-Z)</string>
-    <string name="sort_name_desc">Alfabetycznie (Z-A)</string>
-    <string name="sort_install_time_new">Czas instalacji (Nowe)</string>
-    <string name="sort_install_time_old">Czas instalacji (Stare)</string>
-    <string name="sort_size_desc">Rozmiar - malejąco</string>
-    <string name="sort_size_asc">Rozmiar - rosnąco</string>
     <string name="sort_usage_freq">Częstotliwość używania</string>
     <string name="no_apps_in_category">Brak aplikacji w tej kategorii</string>
     <string name="persistent">Trwały</string>

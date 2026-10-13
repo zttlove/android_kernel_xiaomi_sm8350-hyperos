@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <title>系统服务稳定性修复</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="bridge.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">DYNAMIC · 2.6.2 测试版</p>
+      <h1>系统服务修复</h1>
+      <p class="subtitle">新安装全部关闭。请查看各项错误日志和建议，自行选择开启；升级保留已有选择。</p>
+      <p id="device" class="device">小米 11 Pro · Android 17 / HyperOS 4</p>
+    </header>
+
+    <div id="message" class="message" role="status" aria-live="polite">正在读取手机状态…</div>
+
+    <section class="card" aria-labelledby="atfwd-title">
+      <div class="card-heading"><span class="number">01</span><span class="timing">下次开机生效 · 默认关闭</span></div>
+      <h2 id="atfwd-title">ATFWD 服务修复</h2>
+      <p>补充服务需要的 gettid 权限，避免它被安全策略拦截后反复退出。</p>
+      <label class="switch-row" for="atfwd-toggle">
+        <span>启用修复<small>保存选择，不重启当前服务</small></span>
+        <input id="atfwd-toggle" type="checkbox" role="switch" disabled>
+        <span class="switch" aria-hidden="true"></span>
+      </label>
+      <p id="atfwd-advice" class="pending" role="status" hidden></p>
+      <div class="status-row"><span>当前策略</span><strong id="atfwd-active">读取中</strong></div>
+      <div class="status-row"><span>服务状态</span><strong id="atfwd-service">读取中</strong></div>
+      <p id="atfwd-pending" class="pending" hidden>选择已保存，需下次开机后生效。</p>
+    </section>
+
+    <section class="card" aria-labelledby="traced-title">
+      <div class="card-heading"><span class="number">02</span><span class="timing">即时应用 · 默认关闭</span></div>
+      <h2 id="traced-title">性能追踪服务修复</h2>
+      <p>移除不适用的虚拟机通道，让 traced 使用手机本地通道，保留性能追踪功能。</p>
+      <label class="switch-row" for="traced-toggle">
+        <span>启用修复<small>切换时可能短暂重启 traced</small></span>
+        <input id="traced-toggle" type="checkbox" role="switch" disabled>
+        <span class="switch" aria-hidden="true"></span>
+      </label>
+      <p id="traced-advice" class="pending" role="status" hidden></p>
+      <div class="status-row"><span>当前通道</span><strong id="traced-active">读取中</strong></div>
+      <div class="status-row"><span>服务状态</span><strong id="traced-service">读取中</strong></div>
+      <p id="traced-pending" class="pending" hidden>开关与当前通道不一致，请刷新并查看操作记录。</p>
+    </section>
+
+    <section class="card" aria-labelledby="gnss-title">
+      <div class="card-heading"><span class="number">03</span><span class="timing">即时应用 · 默认关闭</span></div>
+      <h2 id="gnss-title">GNSS 异常请求抑制</h2>
+      <p>使用 ROM 自带的跳过属性，停止 loc_sys_service 对缺失 AIDL 接口的重复请求。保留原有 HIDL 定位服务；此处理不会补齐缺失接口。</p>
+      <label class="switch-row" for="gnss-toggle">
+        <span>启用处理<small>仅切换辅助服务，需验证室外定位</small></span>
+        <input id="gnss-toggle" type="checkbox" role="switch" disabled>
+        <span class="switch" aria-hidden="true"></span>
+      </label>
+      <p id="gnss-advice" class="pending" role="status" hidden></p>
+      <div class="status-row"><span>处理状态</span><strong id="gnss-active">读取中</strong></div>
+      <div class="status-row"><span>辅助服务</span><strong id="gnss-aux-service">读取中</strong></div>
+      <div class="status-row"><span>原有定位服务</span><strong id="gnss-service">读取中</strong></div>
+      <div class="status-row"><span>跳过属性</span><strong id="gnss-skip">读取中</strong></div>
+      <p id="gnss-pending" class="pending" hidden>开关与实际状态不一致，请刷新并查看操作记录。</p>
+      <p class="pending">只有辅助服务停止不代表定位功能全部验证通过，仍需室外搜星与导航测试。</p>
+    </section>
+
+    <section class="card" aria-labelledby="tcm-title">
+      <div class="card-heading"><span class="number">04</span><span class="timing">下次开机生效 · 默认关闭</span></div>
+      <h2 id="tcm-title">MiuiPasswords TCM Socket 修复</h2>
+      <p>只允许 MiuiPasswords 向现有 TCM Socket 写入，减少重复 SELinux 拒绝和 audit 日志洪泛；不关闭 SELinux。</p>
+      <label class="switch-row" for="tcm-toggle">
+        <span>启用修复<small>保存规则，需重启后加载</small></span>
+        <input id="tcm-toggle" type="checkbox" role="switch" disabled>
+        <span class="switch" aria-hidden="true"></span>
+      </label>
+      <p id="tcm-advice" class="pending" role="status" hidden></p>
+      <div class="status-row"><span>当前权限</span><strong id="tcm-rule">读取中</strong></div>
+      <p id="tcm-pending" class="pending" hidden></p>
+    </section>
+
+    <section class="card" aria-labelledby="suspend-title">
+      <div class="card-heading"><span class="number">05</span><span class="timing">即时应用 · 下次开机持久化 · 默认关闭</span></div>
+      <h2 id="suspend-title">system_suspend RTC 读取权限</h2>
+      <p>允许系统挂起服务读取 RTC 唤醒统计，减少对应 SELinux 拒绝和 audit 日志洪泛；只增加读取权限，不允许写入 RTC。</p>
+      <label class="switch-row" for="suspend-toggle">
+        <span>启用修复<small>开启即时生效，关闭需重启后撤销</small></span>
+        <input id="suspend-toggle" type="checkbox" role="switch" disabled>
+        <span class="switch" aria-hidden="true"></span>
+      </label>
+      <p id="suspend-advice" class="pending" role="status" hidden></p>
+      <div class="status-row"><span>当前权限</span><strong id="suspend-rule">读取中</strong></div>
+      <p id="suspend-pending" class="pending" hidden></p>
+    </section>
+
+    <div class="toolbar"><span id="checked">尚未读取</span><button id="refresh" type="button">刷新状态</button></div>
+    <details>
+      <summary>设备信息与操作记录</summary>
+      <dl>
+        <dt>系统版本</dt><dd id="rom">—</dd>
+        <dt>内核版本</dt><dd id="kernel">—</dd>
+        <dt>traced 总开关</dt><dd id="master">—</dd>
+        <dt>采集服务</dt><dd id="probes">—</dd>
+        <dt>虚拟机通道属性</dt><dd id="relay">—</dd>
+      </dl>
+      <pre id="logs">暂无操作记录</pre>
+    </details>
+    <footer>关闭修复会恢复原行为，相关错误可能重新出现。禁用整个模块后，下次开机恢复 ROM 原配置。页面不会自动重启手机。</footer>
+  </main>
+  <nav class="dock" aria-label="页面导航">
+    <a class="current" href="index.html" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/></svg><span>修复开关</span></a>
+    <a href="kernel-log.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6zM9 10h6M9 14h6M9 18h4"/></svg><span>内核日志</span></a>
+  </nav>
+  <dialog id="confirm-dialog">
+    <form method="dialog">
+      <h2>关闭这项修复？</h2>
+      <p id="confirm-text"></p>
+      <div class="dialog-actions"><button value="cancel">保留修复</button><button class="danger" value="confirm">确认关闭</button></div>
+    </form>
+  </dialog>
+</body>
+</html>

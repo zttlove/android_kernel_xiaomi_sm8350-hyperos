@@ -15,6 +15,7 @@
 #include <linux/slab.h>
 #include <linux/file.h>
 #include <linux/fdtable.h>
+#include <linux/close_range.h>
 #include <linux/bitops.h>
 #include <linux/spinlock.h>
 #include <linux/rcupdate.h>
@@ -655,6 +656,77 @@ out_unlock:
 	return -EBADF;
 }
 EXPORT_SYMBOL(__close_fd); /* for ksys_close() */
+
+static inline void __range_cloexec(struct files_struct *files,
+				   unsigned int fd, unsigned int max_fd)
+{
+	struct fdtable *fdt;
+
+	spin_lock(&files->file_lock);
+	fdt = files_fdtable(files);
+	max_fd = min(max_fd, fdt->max_fds - 1);
+	if (fd <= max_fd)
+		bitmap_set(fdt->close_on_exec, fd, max_fd - fd + 1);
+	spin_unlock(&files->file_lock);
+}
+
+static inline void __range_close(struct files_struct *files,
+				 unsigned int fd, unsigned int max_fd)
+{
+	while (fd <= max_fd) {
+		__close_fd(files, fd++);
+		cond_resched();
+	}
+}
+
+/*
+ * close_range() 的实现，回补 Linux 5.9/5.11 的系统调用和 CLOEXEC 标志。
+ * 这里使用当前内核的 dup_fd() 接口处理 CLOSE_RANGE_UNSHARE。
+ */
+int __close_range(unsigned int fd, unsigned int max_fd, unsigned int flags)
+{
+	struct task_struct *me = current;
+	struct files_struct *cur_fds = me->files, *old_fds = NULL;
+	unsigned int cur_max;
+
+	if (flags & ~(CLOSE_RANGE_UNSHARE | CLOSE_RANGE_CLOEXEC))
+		return -EINVAL;
+	if (fd > max_fd)
+		return -EINVAL;
+
+	rcu_read_lock();
+	cur_max = files_fdtable(cur_fds)->max_fds;
+	rcu_read_unlock();
+	if (!cur_max)
+		return 0;
+	cur_max--;
+
+	if (flags & CLOSE_RANGE_UNSHARE) {
+		int error;
+		struct files_struct *new_fds;
+
+		new_fds = dup_fd(cur_fds, &error);
+		if (!new_fds)
+			return error ?: -ENOMEM;
+		old_fds = cur_fds;
+		cur_fds = new_fds;
+	}
+
+	max_fd = min(max_fd, cur_max);
+	if (flags & CLOSE_RANGE_CLOEXEC)
+		__range_cloexec(cur_fds, fd, max_fd);
+	else
+		__range_close(cur_fds, fd, max_fd);
+
+	if (old_fds) {
+		task_lock(me);
+		me->files = cur_fds;
+		task_unlock(me);
+		put_files_struct(old_fds);
+	}
+
+	return 0;
+}
 
 /*
  * variant of __close_fd that gets a ref on the file for later fput

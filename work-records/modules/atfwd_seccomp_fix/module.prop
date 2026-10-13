@@ -1,0 +1,6 @@
+id=atfwd_seccomp_fix
+name=系统服务稳定性修复
+version=2.6.2-test
+versionCode=12
+author=Dynamic
+description=统一处理 ATFWD 重启、Perfetto 虚拟机通道、GNSS 缺失 AIDL 请求、TCM Socket 和 system_suspend RTC 读取权限，提供五个中文独立开关及只读内核日志；新安装全部关闭，由用户根据日志和建议自行开启，适配 mars / Android 17。

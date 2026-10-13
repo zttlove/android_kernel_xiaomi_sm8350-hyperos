@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <title>内核日志 · 系统服务稳定性修复</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="bridge.js" defer></script>
+  <script src="kernel-log.js" defer></script>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">DYNAMIC · 2.4.1 测试版</p>
+      <h1>内核日志</h1>
+      <p class="subtitle">查看当前启动后的日志快照。</p>
+    </header>
+    <div id="message" class="message" role="status">正在读取内核日志…</div>
+    <section class="card log-card" aria-labelledby="log-title">
+      <div class="card-heading"><span class="number">DMESG</span><span class="timing">只读快照</span></div>
+      <h2 id="log-title">最近的内核输出</h2>
+      <p>读取最近 64 KiB 内的最多 400 行。方括号时间为启动后的秒数，旧日志可能已被环形缓冲区覆盖。</p>
+      <div class="log-filters">
+        <label for="keyword">关键词<input id="keyword" type="search" placeholder="例如 traced、binder、wlan" autocomplete="off"></label>
+        <label for="level">级别<select id="level"><option value="all">全部级别</option><option value="error">错误及以上（0–3）</option><option value="warning">警告（4）</option><option value="info">通知 / 信息 / 调试（5–7）</option><option value="unknown">无法识别</option></select></label>
+      </div>
+      <div class="log-meta"><span id="summary" role="status">尚未读取</span><button id="refresh" type="button">刷新日志</button></div>
+      <div id="kernel-output" class="kernel-output" tabindex="0" aria-label="内核日志内容"><p class="empty">暂无快照</p></div>
+    </section>
+    <footer>进入页面或手动刷新时读取，不自动轮询、不清空日志。缓冲区也可能包含 init 等系统服务写入的消息；错误级别不代表一定是内核故障。</footer>
+  </main>
+  <nav class="dock" aria-label="页面导航">
+    <a href="index.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/></svg><span>修复开关</span></a>
+    <a class="current" href="kernel-log.html" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6zM9 10h6M9 14h6M9 18h4"/></svg><span>内核日志</span></a>
+  </nav>
+</body>
+</html>
