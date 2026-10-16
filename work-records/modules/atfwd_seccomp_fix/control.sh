@@ -175,8 +175,12 @@ gnss_owned() {
 }
 check_gnss() {
     [ -x "$RESETPROP" ] || fail '现有 resetprop 不可用，未应用 GNSS 处理。'
-    [ "$(getprop ro.build.version.incremental)" = OS4.0.0.26.XKACNXM ] &&
-    [ "$(getprop ro.vendor.build.fingerprint)" = 'Xiaomi/mars/mars:13/RKQ1.211001.001/OS4.0.0.26.XKACNXM:user/release-keys' ] || fail 'ROM 或 vendor 版本已变化，需要重新适配 GNSS。'
+    # .19 与已验证的 .26 共用相同 GNSS 三文件哈希，仍要求精确版本和 vendor 指纹匹配。
+    case "$(getprop ro.build.version.incremental):$(getprop ro.vendor.build.fingerprint)" in
+        'OS4.0.0.19.XKACNXM:Xiaomi/mars/mars:13/RKQ1.211001.001/OS4.0.0.19.XKACNXM:user/release-keys'|\
+        'OS4.0.0.26.XKACNXM:Xiaomi/mars/mars:13/RKQ1.211001.001/OS4.0.0.26.XKACNXM:user/release-keys') ;;
+        *) fail 'ROM 或 vendor 版本已变化，需要重新适配 GNSS。' ;;
+    esac
     [ "$(file_hash /system_ext/etc/init/loc_sys_service.rc)" = "$GNSS_RC_HASH" ] &&
     [ "$(file_hash /system_ext/bin/loc_sys_service)" = "$GNSS_BIN_HASH" ] &&
     [ "$(file_hash /vendor/etc/vintf/manifest/vendor.qti.gnss@4.0-service.xml)" = "$GNSS_MANIFEST_HASH" ] || fail 'GNSS 程序、启动配置或 vendor 清单已变化，需要重新分析。'
@@ -244,7 +248,12 @@ apply_gnss() {
     fi
 }
 check_tcm() {
-    [ "$(getprop ro.build.version.incremental)" = OS4.0.0.26.XKACNXM ] || fail 'ROM 版本不在 TCM 修复适配范围。'
+    # 只增加实机核对过的 .19；版本与 vendor 指纹必须成对匹配。
+    case "$(getprop ro.build.version.incremental):$(getprop ro.vendor.build.fingerprint)" in
+        'OS4.0.0.19.XKACNXM:Xiaomi/mars/mars:13/RKQ1.211001.001/OS4.0.0.19.XKACNXM:user/release-keys'|\
+        'OS4.0.0.26.XKACNXM:Xiaomi/mars/mars:13/RKQ1.211001.001/OS4.0.0.26.XKACNXM:user/release-keys') ;;
+        *) fail 'ROM 或 vendor 版本不在 TCM 修复适配范围。' ;;
+    esac
     [ "$(getenforce 2>/dev/null)" = Enforcing ] || fail 'SELinux 不是 Enforcing，未应用 TCM 修复。'
     [ -e /dev/socket/tcm ] || fail '未找到 /dev/socket/tcm，未应用 TCM 修复。'
     ls -Z /dev/socket/tcm 2>/dev/null | grep -Fq 'vendor_dpmtcm_socket' || fail 'TCM Socket 标签已变化，需要重新分析。'

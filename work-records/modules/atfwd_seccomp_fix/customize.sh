@@ -17,7 +17,12 @@ done
 policy_tmp="$MODPATH/sepolicy.rule.tmp"
 : > "$policy_tmp" || abort '初始化模块策略失败。'
 if [ "$(cat "$MODPATH/config/tcm_enabled")" = 1 ]; then
-    [ "$(getprop ro.build.version.incremental)" = OS4.0.0.26.XKACNXM ] || abort 'ROM 版本不在 TCM 修复适配范围。'
+    # 与运行时使用同一组精确版本，避免 .19 已开启 TCM 后无法升级。
+    case "$(getprop ro.build.version.incremental):$(getprop ro.vendor.build.fingerprint)" in
+        'OS4.0.0.19.XKACNXM:Xiaomi/mars/mars:13/RKQ1.211001.001/OS4.0.0.19.XKACNXM:user/release-keys'|\
+        'OS4.0.0.26.XKACNXM:Xiaomi/mars/mars:13/RKQ1.211001.001/OS4.0.0.26.XKACNXM:user/release-keys') ;;
+        *) abort 'ROM 或 vendor 版本不在 TCM 修复适配范围。' ;;
+    esac
     printf '%s\n' \
         'allow platform_app_36 vendor_dpmtcm_socket sock_file write;' \
         'allow bluetooth vendor_dpmtcm_socket sock_file write;' \

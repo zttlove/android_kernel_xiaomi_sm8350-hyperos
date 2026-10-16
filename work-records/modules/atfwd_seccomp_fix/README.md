@@ -1,6 +1,6 @@
 # 系统服务稳定性修复
 
-沿用原模块 ID `atfwd_seccomp_fix`，适配小米 11 Pro（mars）、Android 17 / HyperOS `OS4.0.0.26.XKACNXM`、内核 `5.4.302-Dynamic-g1015467` 和当前 KernelSU/Hybrid Mount 环境。
+沿用原模块 ID `atfwd_seccomp_fix`，适配小米 11 Pro（mars）、Android 17 和当前 KernelSU/Hybrid Mount 环境；GNSS、TCM 开关接受 `OS4.0.0.19.XKACNXM`、`OS4.0.0.26.XKACNXM` 各自对应的精确 vendor 指纹。2.6.4-test 在 `.19` / `5.4.302-Dynamic-g3c304f2` 验证开关和 RTC 即时权限。
 
 ## 五个独立开关
 
@@ -58,16 +58,22 @@ KernelSU 在替换升级目录后先加载 `sepolicy.rule`，再执行模块的 
 
 完整 ZIP 安装后的开关、规则内容、首次重启实际权限与回滚需要单独验收；结果见工作记录和对应 Release 说明，不能用安装命令成功替代验证。
 
-### GNSS 处理边界（2.3-test）
+### GNSS 处理边界（2.6.3-test）
 
 当前 `loc_sys_service` 等待 `vendor.qti.gnss.ILocAidlGnss/default`，vendor 实际提供旧 HIDL 接口。此开关抑制无效请求，不补齐 AIDL，也不保证该辅助服务的所有厂商扩展功能可用。保留 `/vendor/bin/hw/android.hardware.gnss@2.1-service-qti`（`gnss_service`），仍须用户进行室外搜星、连续导航和重启后验收。
 
-- 开启前校验 ROM 版本、vendor 指纹，以及辅助程序、init 配置和 HIDL 清单的 SHA-256；即时开启还检查原定位服务运行、AIDL 服务未注册。ROM 更新或配置不匹配时拒绝开启。
+- 开启前校验已确认的 `OS4.0.0.19.XKACNXM` 或 `OS4.0.0.26.XKACNXM` 版本、对应 vendor 指纹，以及辅助程序、init 配置和 HIDL 清单的 SHA-256；即时开启还检查原定位服务运行、AIDL 服务未注册。ROM 更新或配置不匹配时拒绝开启。
 - `post-fs-data` 阶段只使用现有 `resetprop -n` 设置属性，不发 `ctl` 命令；`service.sh` 和即时切换只控制 `loc_sys_service`。
 - 保存原空属性是否存在及辅助服务状态，限定本次开机。默认关闭且没有本模块状态时不操作属性或服务；遇到其他属性值拒绝覆盖。
 - 独立设置命令：`sh /data/adb/modules/atfwd_seccomp_fix/control.sh set gnss 1`；关闭改为 `0`。不需要创建第二个模块。
 
 ## 修改范围
+
+### TCM 开关的 .19 适配（2.6.4-test）
+
+修复 `.19` 系统点击 TCM 时被旧 `.26` 版本判断拒绝的问题。实机确认 `/dev/socket/tcm` 仍标记为 `vendor_dpmtcm_socket`、`dpmd` 正在运行，且存在同类 `TcmReceiver` 写入拒绝。运行脚本与安装脚本同步接受 `.19`、`.26` 的精确版本和 vendor 指纹组合，保留设备、Android、SELinux、Socket、服务及应用检查；原有三条权限和下次开机加载方式不变。
+
+RTC 在本次实机后端开启成功，已通过 SELinux 权限查询核实；未确认独立的 RTC 脚本缺陷，因此不改变其权限或接口。TCM 保存开启后仍需下次开机核实实际权限，不能把开关保存成功等同于已加载。本次不自动重启，以保留正在运行的临时测试内核。
 
 ### 关闭开关时的日志建议（2.5.0-test）
 
